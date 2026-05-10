@@ -1,0 +1,534 @@
+# クリック進化ゲーム（HTML1ファイル）
+
+```html
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>クリック進化ゲーム</title>
+
+<style>
+body{
+    margin:0;
+    background:#111;
+    color:white;
+    font-family:sans-serif;
+    overflow:hidden;
+    touch-action:pan-y;
+}
+
+#game{
+    width:100vw;
+    height:100vh;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+
+    user-select:none;
+    position:relative;
+}
+
+#image{
+    width:60vw;
+    max-width:260px;
+    min-width:180px;
+    width:260px;
+    height:260px;
+    object-fit:cover;
+    border-radius:20px;
+    box-shadow:0 0 25px rgba(255,255,255,0.2);
+    margin-bottom:20px;
+}
+
+#coins{
+    font-size:clamp(32px,8vw,60px);
+    margin-bottom:10px;
+}
+
+#stage{
+    font-size:clamp(16px,4vw,24px);
+    opacity:0.8;
+    margin-bottom:20px;
+}
+
+#clickInfo{
+    margin-bottom:140px;
+    font-size:clamp(14px,4vw,20px);
+    opacity:0.7;
+}
+
+#upgradeBox{
+    position:absolute;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+
+    width:90%;
+    max-width:450px;
+}
+
+.upgrade{
+    touch-action:manipulation;
+    background:#222;
+    border:2px solid #444;
+    padding:15px;
+    margin-top:10px;
+    border-radius:12px;
+    cursor:pointer;
+}
+
+.upgrade:hover{
+    background:#333;
+}
+
+#swipeInfo{
+    position:absolute;
+    top:20px;
+    opacity:0.5;
+    font-size:14px;
+}
+
+.flash{
+    animation:flash 0.2s;
+}
+
+@keyframes flash{
+    0%{ transform:scale(1); }
+    50%{ transform:scale(1.05); }
+    100%{ transform:scale(1); }
+}
+@media (max-width:600px){
+
+    #upgradeBox{
+        width:95%;
+        bottom:10px;
+    }
+
+    .upgrade{
+        padding:18px;
+        font-size:18px;
+    }
+
+    #swipeInfo{
+        font-size:12px;
+        top:10px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div id="game">
+
+    <div id="swipeInfo">← → スワイプで画像切替</div>
+
+    <img id="image" src="https://picsum.photos/400?1">
+
+    <div id="coins">0</div>
+    <div id="stage">ステージ 1</div>
+    <div id="clickInfo">画面クリックで増加</div>
+    <div id="criticalText" style="height:30px;color:gold;font-size:24px;margin-top:10px;"></div>
+
+    <div id="upgradeBox">
+
+        <div class="upgrade" onclick="buyPower()">
+            クリック強化<br>
+            コスト: <span id="powerCost">10</span>
+        </div>
+
+        <div class="upgrade" onclick="buyAuto()">
+            自動収入<br>
+            コスト: <span id="autoCost">100</span>
+        </div>
+
+        <div class="upgrade" onclick="toggleOtherMenu()">
+            その他 ▼
+        </div>
+
+        <div id="otherMenu" style="display:none;">
+
+            <div class="upgrade" onclick="rebirthGame()">
+                転生<br>
+                必要: 1兆
+            </div>
+
+            <div class="upgrade" onclick="openGallery()">
+                図鑑を見る
+            </div>
+
+            <div id="gallery" style="display:none;background:#111;padding:10px;margin-top:10px;border-radius:12px;max-height:200px;overflow:auto;"></div>
+
+            <div class="upgrade" onclick="buyAutoWorld()">
+                世界進化ブースト<br>
+                コスト: <span id="worldCost">5000</span>
+            </div>
+
+        </div>
+
+        <div class="upgrade" onclick="buyAuto()">
+            自動収入<br>
+            コスト: <span id="autoCost">100</span>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+// =========================
+// エフェクト
+// =========================
+const effects = [
+    "進化！",
+    "CRITICAL!",
+    "BONUS!",
+    "LEVEL UP!"
+];
+
+// =========================
+// 保存
+// =========================
+let coins = Number(localStorage.getItem("coins") || 0);
+let clickPower = Number(localStorage.getItem("clickPower") || 1);
+let autoPower = Number(localStorage.getItem("autoPower") || 0);
+let rebirth = Number(localStorage.getItem("rebirth") || 0);
+let unlockedImages = JSON.parse(localStorage.getItem("unlockedImages") || "[]");
+let powerCost = Number(localStorage.getItem("powerCost") || 10);
+let autoCost = Number(localStorage.getItem("autoCost") || 100);
+let worldCost = Number(localStorage.getItem("worldCost") || 5000);
+let worldBoost = Number(localStorage.getItem("worldBoost") || 1);
+
+// =========================
+// 画像段階
+// =========================
+const stages = [
+    { need:10, image:"https://picsum.photos/400?1" },
+    { need:100, image:"https://picsum.photos/400?2" },
+    { need:500, image:"https://picsum.photos/400?3" },
+    { need:1000, image:"https://picsum.photos/400?4" },
+    { need:5000, image:"https://picsum.photos/400?5" },
+    { need:10000, image:"https://picsum.photos/400?6" },
+    { need:100000, image:"https://picsum.photos/400?7" },
+    { need:1000000, image:"https://picsum.photos/400?8" },
+    { need:10000000, image:"https://picsum.photos/400?9" },
+    { need:100000000, image:"https://picsum.photos/400?10" },
+    { need:1000000000, image:"https://picsum.photos/400?11" },
+    { need:10000000000, image:"https://picsum.photos/400?12" },
+    { need:100000000000, image:"https://picsum.photos/400?13" },
+    { need:1000000000000, image:"https://picsum.photos/400?14" }
+];
+
+let unlockedStage = 0;
+let viewingStage = 0;
+
+// =========================
+// 更新
+// =========================
+function update(){
+
+    document.getElementById("coins").textContent = format(coins);
+
+    document.getElementById("powerCost").textContent = format(powerCost);
+    document.getElementById("autoCost").textContent = format(autoCost);
+    document.getElementById("worldCost").textContent = format(worldCost);
+
+    // 解放段階
+    for(let i=0;i<stages.length;i++){
+        if(coins >= stages[i].need){
+            unlockedStage = i;
+        }
+    }
+
+    if(viewingStage > unlockedStage){
+        viewingStage = unlockedStage;
+    }
+
+    showStage(viewingStage);
+
+    save();
+}
+
+// =========================
+// 表示
+// =========================
+function showStage(index){
+
+    let img = document.getElementById("image");
+
+    img.src = stages[index].image;
+
+    let nextNeed = "MAX";
+
+    if(index < stages.length - 1){
+        nextNeed = format(stages[index + 1].need - coins);
+
+        if(stages[index + 1].need - coins < 0){
+            nextNeed = 0;
+        }
+    }
+
+    document.getElementById("stage").textContent =
+    "ステージ " + (index+1) +
+    " / 次の解放まで: " + nextNeed + " コイン";
+}
+
+// =========================
+// クリック
+// =========================
+document.getElementById("game").addEventListener("click", (e)=>{
+
+    if(e.target.classList.contains("upgrade")) return;
+
+    let gain = clickPower * worldBoost;
+
+    // クリティカル
+    if(Math.random() < 0.05){
+        gain *= 100;
+        showCritical("CRITICAL x100!!");
+    }
+
+    coins += gain;
+
+    document.getElementById("image").classList.remove("flash");
+    void document.getElementById("image").offsetWidth;
+    document.getElementById("image").classList.add("flash");
+
+    update();
+});
+
+// =========================
+// 強化
+// =========================
+function buyPower(){
+
+    if(coins < powerCost) return;
+
+    coins -= powerCost;
+
+    clickPower *= 2;
+
+    // 約1時間で終盤に行くようにコスト急上昇
+    powerCost = Math.floor(powerCost * 2.6);
+
+    update();
+}
+
+function buyAutoWorld(){
+
+    if(coins < worldCost) return;
+
+    coins -= worldCost;
+
+    worldBoost *= 2;
+
+    worldCost = Math.floor(worldCost * 4);
+
+    showCritical("世界進化！");
+
+    update();
+}
+
+function buyAuto(){
+
+    if(coins < autoCost) return;
+
+    coins -= autoCost;
+
+    autoPower += clickPower * 0.5;
+
+    autoCost = Math.floor(autoCost * 3);
+
+    update();
+}
+
+// =========================
+// 自動収入
+// =========================
+setInterval(()=>{
+
+    coins += autoPower;
+
+    update();
+
+},1000);
+
+// =========================
+// 保存
+// =========================
+function showCritical(text){
+
+    let el = document.getElementById("criticalText");
+
+    el.textContent = text;
+
+    setTimeout(()=>{
+        el.textContent = "";
+    },1200);
+}
+
+function toggleOtherMenu(){
+
+    let menu = document.getElementById("otherMenu");
+
+    if(menu.style.display === "none"){
+        menu.style.display = "block";
+    }else{
+        menu.style.display = "none";
+    }
+}
+
+function openGallery(){
+
+    let gallery = document.getElementById("gallery");
+
+    if(gallery.style.display === "none"){
+
+        gallery.style.display = "block";
+        gallery.innerHTML = "";
+
+        for(let i=0;i<=unlockedStage;i++){
+
+            let img = document.createElement("img");
+            img.src = stages[i].image;
+            img.style.width = "70px";
+            img.style.height = "70px";
+            img.style.objectFit = "cover";
+            img.style.margin = "5px";
+            img.style.borderRadius = "10px";
+
+            gallery.appendChild(img);
+        }
+
+    }else{
+        gallery.style.display = "none";
+    }
+}
+
+function rebirthGame(){
+
+    if(coins < 1e12) return;
+
+    rebirth++;
+
+    clickPower = 1 + rebirth;
+    autoPower = 0;
+    coins = 0;
+
+    showCritical("転生！ 新たな世界が開放された！");
+
+    update();
+}
+
+function save(){
+
+    localStorage.setItem("coins", coins);
+    localStorage.setItem("clickPower", clickPower);
+    localStorage.setItem("autoPower", autoPower);
+    localStorage.setItem("powerCost", powerCost);
+    localStorage.setItem("autoCost", autoCost);
+    localStorage.setItem("worldCost", worldCost);
+    localStorage.setItem("worldBoost", worldBoost);
+    localStorage.setItem("rebirth", rebirth);
+}
+
+// =========================
+// 数字整形
+// =========================
+function format(num){
+
+    if(num >= 1e12) return (num/1e12).toFixed(2) + "兆";
+    if(num >= 1e8) return (num/1e8).toFixed(2) + "億";
+    if(num >= 1e4) return (num/1e4).toFixed(2) + "万";
+
+    return Math.floor(num);
+}
+
+// =========================
+// スワイプ
+// =========================
+let startX = 0;
+
+window.addEventListener("touchstart", e=>{
+    startX = e.touches[0].clientX;
+});
+
+window.addEventListener("touchend", e=>{
+
+    let endX = e.changedTouches[0].clientX;
+    let diff = endX - startX;
+
+    // 右スワイプ
+    if(diff > 50){
+
+        viewingStage--;
+
+        if(viewingStage < 0){
+            viewingStage = 0;
+        }
+
+        showStage(viewingStage);
+    }
+
+    // 左スワイプ
+    if(diff < -50){
+
+        viewingStage++;
+
+        if(viewingStage > unlockedStage){
+            viewingStage = unlockedStage;
+        }
+
+        showStage(viewingStage);
+    }
+});
+
+// PC用
+window.addEventListener("keydown", e=>{
+
+    if(e.key === "ArrowLeft"){
+        viewingStage--;
+        if(viewingStage < 0) viewingStage = 0;
+        showStage(viewingStage);
+    }
+
+    if(e.key === "ArrowRight"){
+        viewingStage++;
+        if(viewingStage > unlockedStage) viewingStage = unlockedStage;
+        showStage(viewingStage);
+    }
+});
+
+update();
+
+</script>
+
+</body>
+</html>
+```
+
+---
+
+# 画像を変える場所
+
+この部分を自分の画像URLに変更。
+
+```js
+image:"画像URL"
+```
+
+---
+
+# 仕様
+
+* localStorage保存
+* 約1時間で終盤想定
+* クリック強化
+* 自動収入
+* スワイプで過去画像閲覧
+* スマホ対応
+* PC矢印キー対応
+* 10 → 10^12 まで進化
