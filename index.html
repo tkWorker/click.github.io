@@ -225,20 +225,20 @@ let worldBoost = Number(localStorage.getItem("worldBoost") || 1);
 // 画像段階
 // =========================
 const stages = [
-    { need:10, image:"https://www.pixiv.net/artworks/144473199" },
-    { need:100, image:"https://picsum.photos/400?2" },
-    { need:500, image:"https://picsum.photos/400?3" },
-    { need:1000, image:"https://picsum.photos/400?4" },
-    { need:5000, image:"https://picsum.photos/400?5" },
-    { need:10000, image:"https://picsum.photos/400?6" },
-    { need:100000, image:"https://picsum.photos/400?7" },
-    { need:1000000, image:"https://picsum.photos/400?8" },
-    { need:10000000, image:"https://picsum.photos/400?9" },
-    { need:100000000, image:"https://picsum.photos/400?10" },
-    { need:1000000000, image:"https://picsum.photos/400?11" },
-    { need:10000000000, image:"https://picsum.photos/400?12" },
-    { need:100000000000, image:"https://picsum.photos/400?13" },
-    { need:1000000000000, image:"https://picsum.photos/400?14" }
+    { need:10 },
+    { need:100 },
+    { need:500 },
+    { need:1000 },
+    { need:5000 },
+    { need:10000 },
+    { need:100000 },
+    { need:1000000 },
+    { need:10000000 },
+    { need:100000000 },
+    { need:1000000000 },
+    { need:10000000000 },
+    { need:100000000000 },
+    { need:1000000000000 }
 ];
 
 let unlockedStage = 0;
@@ -278,7 +278,7 @@ function showStage(index){
 
     let img = document.getElementById("image");
 
-    img.src = stages[index].image;
+    img.src = "images/" + (index + 1) + ".png";
 
     let nextNeed = "MAX";
 
@@ -412,7 +412,7 @@ function openGallery(){
         for(let i=0;i<=unlockedStage;i++){
 
             let img = document.createElement("img");
-            img.src = stages[i].image;
+            img.src = "images/" + (index + 1) + ".png";
             img.style.width = "70px";
             img.style.height = "70px";
             img.style.objectFit = "cover";
