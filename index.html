@@ -19,6 +19,8 @@ body{
 }
 
 #game{
+    padding-top:80px;
+    box-sizing:border-box;
     width:100vw;
     height:100vh;
 
@@ -44,11 +46,23 @@ body{
 }
 
 #coins{
+    position:absolute;
+    top:20px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:10;
     font-size:clamp(32px,8vw,60px);
     margin-bottom:10px;
 }
 
 #stage{
+    position:absolute;
+    top:80px;
+    left:50%;
+    transform:translateX(-50%);
+    width:90%;
+    text-align:center;
+    z-index:10;
     font-size:clamp(16px,4vw,24px);
     opacity:0.8;
     margin-bottom:20px;
