@@ -52,7 +52,7 @@ body{
     transform:translateX(-50%);
     z-index:10;
     font-size:clamp(32px,8vw,60px);
-    margin-bottom:10px;
+    margin-bottom:4px;
 }
 
 #stage{
@@ -60,7 +60,7 @@ body{
     top:80px;
     left:50%;
     transform:translateX(-50%);
-    width:90%;
+    width:85%;
     text-align:center;
     z-index:10;
     font-size:clamp(16px,4vw,24px);
@@ -69,13 +69,14 @@ body{
 }
 
 #clickInfo{
-    margin-bottom:140px;
+    margin-bottom:90px;
     font-size:clamp(14px,4vw,20px);
     opacity:0.7;
 }
 
 #upgradeBox{
-    max-width:340px;
+    position:fixed;
+    max-width:300px;
     bottom:10px;
     position:absolute;
     bottom:20px;
@@ -87,9 +88,9 @@ body{
 }
 
 .upgrade{
-    padding:10px;
+    padding:6px;
     font-size:14px;
-    margin-top:6px;
+    margin-top:4px;
     touch-action:manipulation;
     background:#222;
     border:2px solid #444;
@@ -182,7 +183,7 @@ body{
                 図鑑を見る
             </div>
 
-            <div id="gallery" style="display:none;background:#111;padding:10px;margin-top:10px;border-radius:12px;max-height:200px;overflow:auto;"></div>
+            <div id="gallery" style="display:none;background:#111;padding:6px;margin-top:10px;border-radius:12px;max-height:200px;overflow:auto;"></div>
 
             <div class="upgrade" onclick="buyAutoWorld()">
                 世界進化ブースト<br>
