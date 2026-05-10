@@ -278,7 +278,7 @@ function showStage(index){
 
     let img = document.getElementById("image");
 
-    img.src = "images/" + (index + 1) + ".png";
+    img.src = (index + 1) + ".png";
 
     let nextNeed = "MAX";
 
@@ -412,7 +412,7 @@ function openGallery(){
         for(let i=0;i<=unlockedStage;i++){
 
             let img = document.createElement("img");
-            img.src = "images/" + (index + 1) + ".png";
+            img.src = (index + 1) + ".png";
             img.style.width = "70px";
             img.style.height = "70px";
             img.style.objectFit = "cover";
